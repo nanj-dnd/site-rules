@@ -1,0 +1,80 @@
+/* site-rules motion and interaction. Drop into any page.
+   Rule of the file: only opacity and transform animate. Blur, filters and
+   backdrop-filter drop frames (worst in Safari) and are the usual cause of
+   "choppy" animation. Colours come from the page's --bg, --ink and --line. */
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);  /* things appearing */
+  --ease-io: cubic-bezier(0.65, 0, 0.35, 1);   /* things opening and closing */
+}
+
+/* Hero entrance: a short fade up, staggered with --d. Paused until fonts load
+   (motion.js adds .ready) so text never animates in the fallback font. */
+.land-intro { animation: land-intro 1s var(--ease-out) both; animation-delay: var(--d, 0ms); }
+.js:not(.ready) .land-intro { animation-play-state: paused; }
+@keyframes land-intro {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Scroll reveals. Hidden start states only apply once JS has marked the page,
+   so content is never stuck invisible without it. */
+.js [data-reveal] { opacity: 0; transform: translate3d(0, 20px, 0); transition: opacity .9s var(--ease-out), transform .9s var(--ease-out); transition-delay: var(--d, 0ms); }
+.js [data-reveal][data-shown] { opacity: 1; transform: none; }
+
+/* Sticky header with no border line. Once the page scrolls, content fades out
+   softly under it instead of meeting a hard edge. */
+[data-header] { position: sticky; top: 0; z-index: 50; background: var(--bg, #fff); }
+[data-header]::after {
+  content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 28px; pointer-events: none;
+  background: var(--bg, #fff);
+  -webkit-mask-image: linear-gradient(#000, rgba(0, 0, 0, .65) 40%, transparent);
+  mask-image: linear-gradient(#000, rgba(0, 0, 0, .65) 40%, transparent);
+  opacity: 0; transition: opacity .5s var(--ease-out);
+}
+[data-header][data-scrolled]::after { opacity: 1; }
+
+/* Lenis smooth scrolling (vendor/lenis.min.js) */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }
+
+/* Text link whose underline draws in on hover */
+.land-link {
+  text-decoration: none;
+  background-image: linear-gradient(currentColor, currentColor), linear-gradient(var(--line, #d4d4d4), var(--line, #d4d4d4));
+  background-repeat: no-repeat; background-position: 0 100%, 0 100%; background-size: 0% 1px, 100% 1px;
+  padding-bottom: 2px; transition: background-size .6s var(--ease-out);
+}
+.land-link:hover { background-size: 100% 1px, 100% 1px; }
+
+/* Buttons never jump. No scale on :active (an instant shrink reads as a
+   flicker), no grey tap flash on phones, focus rings for keyboards only. */
+a, button { -webkit-tap-highlight-color: transparent; }
+a:focus:not(:focus-visible), button:focus:not(:focus-visible) { outline: none; }
+.btn .arr { display: inline-block; transition: transform .5s var(--ease-out); }
+.btn:hover .arr { transform: translate(2px, -2px); }
+
+/* Expanding rows. The + becomes - by folding its vertical bar away (a spinning
+   icon passes through an x and reads as flicker). The panel opens at an even
+   pace, and its text fades in a beat after the panel starts moving. */
+[data-acc] .acc-item { border-bottom: 1px solid var(--line, #e7e7e7); }
+[data-acc] .acc-btn { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 20px 0; background: none; border: 0; cursor: pointer; font: inherit; font-size: 22px; color: var(--ink, #0a0a0a); text-align: left; }
+.acc-ic { position: relative; width: 14px; height: 14px; flex-shrink: 0; }
+.acc-ic::before, .acc-ic::after { content: ''; position: absolute; left: 0; top: 6.5px; width: 14px; height: 1.2px; background: currentColor; }
+.acc-ic::after { transform: rotate(90deg) scaleX(1); transition: transform .45s var(--ease-io); }
+.acc-btn[aria-expanded="true"] .acc-ic::after { transform: rotate(90deg) scaleX(0); }
+.acc-panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .5s var(--ease-io); }
+.acc-panel > div { overflow: hidden; }
+.acc-item.open .acc-panel { grid-template-rows: 1fr; }
+.acc-panel > div > * { opacity: 0; transition: opacity .3s ease; }
+.acc-item.open .acc-panel > div > * { opacity: 1; transition: opacity .45s ease .12s; }
+
+@media (max-width: 680px) {
+  [data-acc] .acc-btn { font-size: 20px; padding: 17px 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto !important; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .js [data-reveal], .land-intro { opacity: 1 !important; transform: none !important; }
+}
