@@ -35,4 +35,4 @@ node ~/.claude/skills/site-rules/scripts/check.mjs https://example.com ./example
 
 ## Credits
 
-Smooth scrolling uses [Lenis](https://github.com/darkroomengineering/lenis) 1.1.13 (MIT, see `assets/starter/vendor/LENIS-LICENSE`).
+MIT licensed, see `LICENSE`. Smooth scrolling uses [Lenis](https://github.com/darkroomengineering/lenis) 1.1.13 (MIT, see `assets/starter/vendor/LENIS-LICENSE`).
